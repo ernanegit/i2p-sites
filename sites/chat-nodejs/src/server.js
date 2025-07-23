@@ -1,31 +1,15 @@
-const express = require('express');
 const http = require('http');
 
-const app = express();
-const server = http.createServer(app);
-
-app.get('/', (req, res) => {
-    res.send(`
-        <h1>🔗 Chat I2P Anônimo</h1>
-        <p>✅ Servidor Node.js funcionando!</p>
-        <p>🌐 Conectado via rede I2P simulada</p>
-        <p>🔐 Comunicação criptografada</p>
-        <style>
-            body { font-family: Arial; background: #1a1a2e; color: #fff; padding: 40px; }
-            h1 { color: #00ff88; }
-        </style>
+const server = http.createServer((req, res) => {
+    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+    res.end(`
+        <h1> Chat I2P Funcionando!</h1>
+        <p> Servidor Node.js OK</p>
+        <p> Rede I2P Conectada</p>
+        <style>body{background:#1a1a2e;color:white;font-family:Arial;text-align:center;padding:50px;}</style>
     `);
 });
 
-app.get('/status', (req, res) => {
-    res.json({
-        status: 'online',
-        service: 'I2P Chat',
-        timestamp: new Date().toISOString()
-    });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log('🔗 Chat I2P rodando na porta ' + PORT);
+server.listen(3000, '0.0.0.0', () => {
+    console.log(' Chat I2P rodando na porta 3000');
 });

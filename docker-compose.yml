@@ -20,7 +20,7 @@ services:
     build: ./sites/blog-php
     container_name: blog_php_i2p
     ports:
-      - "8080:80"
+      - "8082:80"
     volumes:
       - ./sites/blog-php/src:/var/www/html
     networks:

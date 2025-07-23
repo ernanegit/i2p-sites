@@ -1,25 +1,24 @@
-@"
-# 🔗 I2P Sites Simulator
+﻿#  I2P Sites Simulator
 
 Simulação de sites dinâmicos rodando em rede I2P usando Docker.
 
-## 🚀 Status Atual
+##  Status Atual
 
-✅ **I2P Router**: Conectado e testando rede  
-🔄 **Blog PHP**: Em desenvolvimento  
-🔄 **Chat Node.js**: Em desenvolvimento  
-✅ **Docker Setup**: Funcionando  
+ **I2P Router**: Conectado e testando rede  
+ **Blog PHP**: Em desenvolvimento  
+ **Chat Node.js**: Em desenvolvimento  
+ **Docker Setup**: Funcionando  
 
-## 🏗️ Arquitetura
+##  Arquitetura
 
 - **Blog PHP**: Sistema com MySQL (porta 8082)
 - **Chat Node.js**: Chat com Redis (porta 8081)  
 - **I2P Router**: Router oficial (porta 7657)
 - **Nginx Proxy**: Proxy reverso (porta 80/443)
 
-## 🚀 Como usar
+##  Como usar
 
-\`\`\`bash
+\\\ash
 # Clone o repositório
 git clone https://github.com/ernanegit/i2p-sites.git
 cd i2p-sites
@@ -31,15 +30,15 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl\i2p.key -out ssl
 docker-compose up -d
 
 # Aguardar I2P inicializar (2-3 minutos)
-\`\`\`
+\\\
 
-## 🌐 Acesso
+##  Acesso
 
 - **I2P Console**: http://localhost:7657
 - **Blog**: http://localhost:8082  
 - **Chat**: http://localhost:8081
 
-## 🛠️ Tecnologias
+##  Tecnologias
 
 - Docker & Docker Compose
 - PHP 8.1 + Apache + MySQL
@@ -48,7 +47,7 @@ docker-compose up -d
 - Nginx Proxy
 - SSL/TLS certificates
 
-## 📝 TODO
+##  TODO
 
 - [x] Setup Docker environment
 - [x] I2P Router integration
@@ -58,7 +57,6 @@ docker-compose up -d
 - [ ] Implement WebSockets chat
 - [ ] Add blog comment system
 
-## 🤝 Desenvolvimento
+##  Desenvolvimento
 
 Projeto em desenvolvimento ativo. Status dos serviços pode variar.
-"@ | Out-File -FilePath "README.md" -Encoding utf8
