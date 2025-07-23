@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Simulador I2P Router (proxy/gateway)
+  i2p-router:
+    image: geti2p/i2p:latest
+    container_name: i2p_router
+    ports:
+      - "7657:7657"  # Console web I2P
+      - "4444:4444"  # HTTP proxy
+      - "4445:4445"  # HTTPS proxy
+    volumes:
+      - i2p_data:/i2p/.i2p
+    networks:
+      - i2p_network
+    restart: unless-stopped
+
+  # Site 1: Blog PHP dinâmico
+  blog-php:
+    build: ./sites/blog-php
+    container_name: blog_php_i2p
+    ports:
+      - "8080:80"
+    volumes:
+      - ./sites/blog-php/src:/var/www/html
+    networks:
+      - i2p_network
+    depends_on:
+      - mysql-blog
+    environment:
+      - DB_HOST=mysql-blog
+      - DB_NAME=blog_i2p
+      - DB_USER=bloguser
+      - DB_PASS=blogpass123
+
+  # Banco MySQL para o blog
+  mysql-blog:
+    image: mysql:8.0
+    container_name: mysql_blog_i2p
+    volumes:
+      - mysql_blog_data:/var/lib/mysql
+      - ./database/blog-init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - i2p_network
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass123
+      - MYSQL_DATABASE=blog_i2p
+      - MYSQL_USER=bloguser
+      - MYSQL_PASSWORD=blogpass123
+
+  # Site 2: Chat Node.js com WebSockets
+  chat-nodejs:
+    build: ./sites/chat-nodejs
+    container_name: chat_nodejs_i2p
+    ports:
+      - "8081:3000"
+    volumes:
+      - ./sites/chat-nodejs/src:/app
+    networks:
+      - i2p_network
+    depends_on:
+      - redis-chat
+    environment:
+      - REDIS_URL=redis://redis-chat:6379
+      - NODE_ENV=development
+
+  # Redis para o chat
+  redis-chat:
+    image: redis:alpine
+    container_name: redis_chat_i2p
+    networks:
+      - i2p_network
+    volumes:
+      - redis_chat_data:/data
+
+  # Proxy reverso que simula o comportamento I2P
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: i2p_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/ssl/certs:ro
+    networks:
+      - i2p_network
+    depends_on:
+      - blog-php
+      - chat-nodejs
+
+volumes:
+  i2p_data:
+  mysql_blog_data:
+  redis_chat_data:
+
+networks:
+  i2p_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
