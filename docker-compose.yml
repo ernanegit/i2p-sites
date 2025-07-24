@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Simulador I2P Router (proxy/gateway)
   i2p-router:
@@ -15,25 +13,7 @@ services:
       - i2p_network
     restart: unless-stopped
 
-  # Site 1: Blog PHP dinâmico
-  blog-php:
-    build: ./sites/blog-php
-    container_name: blog_php_i2p
-    ports:
-      - "8082:80"
-    volumes:
-      - ./sites/blog-php/src:/var/www/html
-    networks:
-      - i2p_network
-    depends_on:
-      - mysql-blog
-    environment:
-      - DB_HOST=mysql-blog
-      - DB_NAME=blog_i2p
-      - DB_USER=bloguser
-      - DB_PASS=blogpass123
-
-  # Banco MySQL para o blog
+  # Banco MySQL para o blog (inicializado primeiro)
   mysql-blog:
     image: mysql:8.0
     container_name: mysql_blog_i2p
@@ -47,6 +27,50 @@ services:
       - MYSQL_DATABASE=blog_i2p
       - MYSQL_USER=bloguser
       - MYSQL_PASSWORD=blogpass123
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "bloguser", "--password=blogpass123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # Site 1: Blog PHP dinâmico
+  blog-php:
+    build: ./sites/blog-php
+    container_name: blog_php_i2p
+    ports:
+      - "8082:80"
+    volumes:
+      - ./sites/blog-php/src:/var/www/html
+    networks:
+      - i2p_network
+    depends_on:
+      mysql-blog:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql-blog
+      - DB_NAME=blog_i2p
+      - DB_USER=bloguser
+      - DB_PASS=blogpass123
+      - PHP_ERROR_REPORTING=E_ALL
+      - PHP_DISPLAY_ERRORS=1
+    restart: unless-stopped
+
+  # Redis para o chat
+  redis-chat:
+    image: redis:alpine
+    container_name: redis_chat_i2p
+    networks:
+      - i2p_network
+    volumes:
+      - redis_chat_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
   # Site 2: Chat Node.js com WebSockets
   chat-nodejs:
@@ -59,19 +83,12 @@ services:
     networks:
       - i2p_network
     depends_on:
-      - redis-chat
+      redis-chat:
+        condition: service_healthy
     environment:
       - REDIS_URL=redis://redis-chat:6379
       - NODE_ENV=development
-
-  # Redis para o chat
-  redis-chat:
-    image: redis:alpine
-    container_name: redis_chat_i2p
-    networks:
-      - i2p_network
-    volumes:
-      - redis_chat_data:/data
+    restart: unless-stopped
 
   # Proxy reverso que simula o comportamento I2P
   nginx-proxy:
@@ -88,6 +105,7 @@ services:
     depends_on:
       - blog-php
       - chat-nodejs
+    restart: unless-stopped
 
 volumes:
   i2p_data:
